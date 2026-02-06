@@ -3,310 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Sinh Viên Pro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Quản Lý Sinh Viên</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
-        .btn-circle { width: 35px; height: 35px; padding: 6px 0; border-radius: 50%; text-align: center; font-size: 12px; line-height: 1.42857; }
-        .table-hover tbody tr:hover { background-color: #f1f1f1; }
-        .header-title { color: #d32f2f; font-weight: bold; text-transform: uppercase; text-align: center; margin: 20px 0; }
+        /* CSS Cơ bản - Tự viết tay */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+
+        h1 { text-align: center; color: #333; }
+
+        .container {
+            display: flex;
+            gap: 30px;
+        }
+
+        /* Phần Form bên trái */
+        .form-container {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            height: fit-content;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px;
+            box-sizing: border-box; /* Để padding không làm vỡ khung */
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .btn-save { background-color: #4CAF50; color: white; }
+        .btn-save:hover { background-color: #45a049; }
+        
+        .btn-reset { background-color: #888; color: white; }
+
+        /* Phần Danh sách bên phải */
+        .list-container {
+            flex: 2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th { background-color: #eee; }
+
+        .btn-edit { background-color: #ff9800; color: white; padding: 5px 10px; }
+        .import-box { margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; }
     </style>
 </head>
 <body>
 
-    <div class="container py-4">
-        <h2 class="header-title"><i class="fas fa-user-graduate"></i> Hệ Thống Quản Lý Sinh Viên PTIT</h2>
+    <h1>QUẢN LÝ SINH VIÊN</h1>
 
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0" id="formTitle"><i class="fas fa-edit"></i> Nhập Thông Tin</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="studentForm" onsubmit="event.preventDefault(); handleSave();">
-                            <div class="mb-3">
-                                <label class="form-label">Mã Sinh Viên</label>
-                                <input type="text" class="form-control" id="maSV" placeholder="VD: B21DCCN001" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Họ và Tên</label>
-                                <input type="text" class="form-control" id="hoTen" placeholder="VD: Nguyễn Văn A" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Ngày Sinh</label>
-                                <input type="date" class="form-control" id="ngaySinh" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Lớp</label>
-                                <input type="text" class="form-control" id="lop" placeholder="VD: D21CQCN01">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Điểm GPA</label>
-                                <input type="number" class="form-control" id="gpa" step="0.01" min="0" max="4" placeholder="0.0 - 4.0">
-                            </div>
-                            
-                            <input type="hidden" id="editIndex" value="-1">
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Lưu Dữ Liệu</button>
-                                <button type="button" class="btn btn-secondary" onclick="resetForm()"><i class="fas fa-sync-alt"></i> Làm Mới</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="card mt-3">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="fas fa-file-excel"></i> Excel Tools</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <label class="form-label small">Import File (.xlsx)</label>
-                            <input type="file" class="form-control form-control-sm" id="fileInput" accept=".xlsx, .xls">
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-sm btn-outline-primary" onclick="importExcel()">
-                                <i class="fas fa-upload"></i> Import
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="exportExcel()">
-                                <i class="fas fa-download"></i> Export
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <div class="container">
+        <div class="form-container">
+            <h3 id="form-header">Nhập thông tin</h3>
+            
+            <div class="form-group">
+                <label>Mã Sinh Viên:</label>
+                <input type="text" id="maSV">
             </div>
 
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 text-primary"><i class="fas fa-list"></i> Danh Sách Sinh Viên</h5>
-                        <div class="input-group" style="width: 250px;">
-                            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Tìm theo tên/mã..." onkeyup="searchStudent()">
-                            <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped mb-0" id="studentTable">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Mã SV</th>
-                                        <th>Họ Tên</th>
-                                        <th>Ngày Sinh</th>
-                                        <th>Lớp</th>
-                                        <th>GPA</th>
-                                        <th class="text-center">Thao Tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer text-muted small" id="recordCount">
-                        Tổng số: 0 sinh viên
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>Họ và Tên:</label>
+                <input type="text" id="tenSV">
             </div>
+
+            <div class="form-group">
+                <label>Ngày Sinh:</label>
+                <input type="date" id="ngaySinh">
+            </div>
+
+            <div class="form-group">
+                <label>Lớp:</label>
+                <input type="text" id="lop">
+            </div>
+
+            <div class="form-group">
+                <label>Điểm GPA:</label>
+                <input type="number" id="gpa" step="0.1" min="0" max="4">
+            </div>
+
+            <input type="hidden" id="edit-index" value="-1">
+
+            <button class="btn-save" onclick="saveStudent()">Lưu Sinh Viên</button>
+            <button class="btn-reset" onclick="resetForm()">Nhập mới</button>
+
+            <div class="import-box">
+                <h4>Nhập từ Excel</h4>
+                <input type="file" id="fileExcel" accept=".xlsx, .xls">
+                <button onclick="readExcel()" style="margin-top: 5px;">Tải lên</button>
+            </div>
+        </div>
+
+        <div class="list-container">
+            <h3>Danh sách sinh viên</h3>
+            <table id="table-sv">
+                <thead>
+                    <tr>
+                        <th>Mã SV</th>
+                        <th>Họ Tên</th>
+                        <th>Ngày Sinh</th>
+                        <th>Lớp</th>
+                        <th>GPA</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // --- 1. Class & Data Management ---
+        // --- PHẦN 1: ĐỊNH NGHĨA CLASS (Hướng đối tượng) ---
         class Student {
-            constructor(maSV, hoTen, ngaySinh, lop, gpa) {
-                this.maSV = maSV;
-                this.hoTen = hoTen;
-                this.ngaySinh = ngaySinh;
+            constructor(ma, ten, ngay, lop, diem) {
+                this.maSV = ma;
+                this.tenSV = ten;
+                this.ngaySinh = ngay;
                 this.lop = lop;
-                this.gpa = gpa;
+                this.gpa = diem;
             }
-            update(hoTen, ngaySinh, lop, gpa) {
-                this.hoTen = hoTen;
-                this.ngaySinh = ngaySinh;
+
+            // Phương thức cập nhật thông tin
+            update(ten, ngay, lop, diem) {
+                this.tenSV = ten;
+                this.ngaySinh = ngay;
                 this.lop = lop;
-                this.gpa = gpa;
+                this.gpa = diem;
             }
         }
 
+        // Mảng chứa danh sách sinh viên
         let studentList = [];
 
-        // Load data from LocalStorage on startup
-        window.onload = function() {
-            const savedData = localStorage.getItem('studentData');
-            if (savedData) {
-                // Reconstruct objects to keep class methods
-                const parsed = JSON.parse(savedData);
-                studentList = parsed.map(s => new Student(s.maSV, s.hoTen, s.ngaySinh, s.lop, s.gpa));
-                renderTable(studentList);
-            }
-        };
+        // --- PHẦN 2: CÁC HÀM XỬ LÝ ---
 
-        function saveData() {
-            localStorage.setItem('studentData', JSON.stringify(studentList));
-            updateCount();
-        }
+        // Hàm 1: Lưu sinh viên (Thêm mới hoặc Cập nhật)
+        function saveStudent() {
+            // Lấy dữ liệu từ ô input
+            let ma = document.getElementById("maSV").value;
+            let ten = document.getElementById("tenSV").value;
+            let ngay = document.getElementById("ngaySinh").value;
+            let lop = document.getElementById("lop").value;
+            let diem = document.getElementById("gpa").value;
+            let index = document.getElementById("edit-index").value;
 
-        // --- 2. Render Functions ---
-        function renderTable(data) {
-            const tbody = document.querySelector("#studentTable tbody");
-            tbody.innerHTML = "";
-
-            if (data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Chưa có dữ liệu</td></tr>`;
+            // Kiểm tra rỗng đơn giản
+            if (ma == "" || ten == "") {
+                alert("Vui lòng nhập Mã và Tên sinh viên!");
                 return;
             }
 
-            data.forEach((sv) => {
-                // Find original index for actions
-                const originalIndex = studentList.indexOf(sv);
-                
-                const row = `<tr>
-                    <td class="fw-bold">${sv.maSV}</td>
-                    <td>${sv.hoTen}</td>
-                    <td>${sv.ngaySinh}</td>
-                    <td><span class="badge bg-info text-dark">${sv.lop}</span></td>
-                    <td><span class="badge ${getGPABadge(sv.gpa)}">${sv.gpa}</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-warning btn-sm btn-circle" onclick="prepareEdit(${originalIndex})" title="Sửa"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-danger btn-sm btn-circle" onclick="deleteStudent(${originalIndex})" title="Xóa"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-            updateCount();
-        }
-
-        function getGPABadge(gpa) {
-            if (gpa >= 3.6) return 'bg-success';
-            if (gpa >= 3.2) return 'bg-primary';
-            if (gpa >= 2.5) return 'bg-secondary';
-            return 'bg-danger';
-        }
-
-        function updateCount() {
-            document.getElementById('recordCount').innerText = `Tổng số: ${studentList.length} sinh viên`;
-        }
-
-        // --- 3. Form Handling ---
-        function handleSave() {
-            const maSV = document.getElementById("maSV").value.trim();
-            const hoTen = document.getElementById("hoTen").value.trim();
-            const ngaySinh = document.getElementById("ngaySinh").value;
-            const lop = document.getElementById("lop").value.trim();
-            const gpa = document.getElementById("gpa").value;
-            const editIndex = document.getElementById("editIndex").value;
-
-            // Simple Logic Validation
-            if (editIndex == -1) {
-                // Check duplicate MaSV
-                if (studentList.some(s => s.maSV === maSV)) {
-                    alert("Mã sinh viên đã tồn tại!");
-                    return;
-                }
-                const newStudent = new Student(maSV, hoTen, ngaySinh, lop, gpa);
-                studentList.push(newStudent);
+            if (index == -1) {
+                // THÊM MỚI: Tạo đối tượng Student và đẩy vào mảng
+                let sv = new Student(ma, ten, ngay, lop, diem);
+                studentList.push(sv);
             } else {
-                studentList[editIndex].update(hoTen, ngaySinh, lop, gpa);
-                // Note: MaSV is typically PK, not editable, but kept simplified here
+                // CẬP NHẬT: Gọi phương thức update của đối tượng
+                // Vì danh sách lưu object, ta lấy object ra và sửa
+                studentList[index].update(ten, ngay, lop, diem);
+                // Mã SV thường là khóa chính nên ít khi sửa, nhưng nếu cần:
+                studentList[index].maSV = ma; 
             }
 
-            saveData();
-            renderTable(studentList);
-            resetForm();
+            renderTable(); // Vẽ lại bảng
+            resetForm();   // Xóa trắng form
         }
 
-        function prepareEdit(index) {
-            const sv = studentList[index];
+        // Hàm 2: Hiển thị danh sách ra bảng (Render HTML)
+        function renderTable() {
+            let tableBody = document.querySelector("#table-sv tbody");
+            tableBody.innerHTML = ""; // Xóa bảng cũ
+
+            for (let i = 0; i < studentList.length; i++) {
+                let sv = studentList[i];
+                
+                // Tạo chuỗi HTML cho từng dòng
+                let row = `
+                    <tr>
+                        <td>${sv.maSV}</td>
+                        <td>${sv.tenSV}</td>
+                        <td>${sv.ngaySinh}</td>
+                        <td>${sv.lop}</td>
+                        <td>${sv.gpa}</td>
+                        <td>
+                            <button class="btn-edit" onclick="editStudent(${i})">Sửa</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            }
+        }
+
+        // Hàm 3: Đưa thông tin lên form để sửa
+        function editStudent(i) {
+            let sv = studentList[i];
+            
+            // Điền dữ liệu vào ô input
             document.getElementById("maSV").value = sv.maSV;
-            document.getElementById("hoTen").value = sv.hoTen;
+            document.getElementById("tenSV").value = sv.tenSV;
             document.getElementById("ngaySinh").value = sv.ngaySinh;
             document.getElementById("lop").value = sv.lop;
             document.getElementById("gpa").value = sv.gpa;
-            
-            document.getElementById("editIndex").value = index;
-            document.getElementById("formTitle").innerHTML = '<i class="fas fa-edit"></i> Cập Nhật Sinh Viên';
-            document.getElementById("maSV").disabled = true; // Block ID edit
+
+            // Đánh dấu là đang sửa dòng thứ i
+            document.getElementById("edit-index").value = i;
+            document.getElementById("form-header").innerText = "Cập nhật sinh viên";
         }
 
-        function deleteStudent(index) {
-            if (confirm("Bạn có chắc muốn xóa sinh viên này không?")) {
-                studentList.splice(index, 1);
-                saveData();
-                renderTable(studentList);
-            }
-        }
-
+        // Hàm 4: Làm mới form
         function resetForm() {
-            document.getElementById("studentForm").reset();
-            document.getElementById("editIndex").value = "-1";
-            document.getElementById("formTitle").innerHTML = '<i class="fas fa-user-plus"></i> Thêm Mới Sinh Viên';
-            document.getElementById("maSV").disabled = false;
+            document.getElementById("maSV").value = "";
+            document.getElementById("tenSV").value = "";
+            document.getElementById("ngaySinh").value = "";
+            document.getElementById("lop").value = "";
+            document.getElementById("gpa").value = "";
+            
+            document.getElementById("edit-index").value = -1;
+            document.getElementById("form-header").innerText = "Nhập thông tin";
         }
 
-        // --- 4. Search Function ---
-        function searchStudent() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase();
-            const filteredList = studentList.filter(s => 
-                s.hoTen.toLowerCase().includes(keyword) || 
-                s.maSV.toLowerCase().includes(keyword) ||
-                s.lop.toLowerCase().includes(keyword)
-            );
-            renderTable(filteredList);
-        }
+        // Hàm 5: Đọc file Excel (Sử dụng thư viện SheetJS cơ bản)
+        function readExcel() {
+            let fileInput = document.getElementById("fileExcel");
+            let file = fileInput.files[0];
 
-        // --- 5. Excel Features ---
-        function importExcel() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (!file) { alert("Chưa chọn file!"); return; }
+            if (!file) {
+                alert("Bạn chưa chọn file!");
+                return;
+            }
 
-            const reader = new FileReader();
+            let reader = new FileReader();
             reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, {type: 'array'});
+                
+                // Lấy sheet đầu tiên
+                let sheetName = workbook.SheetNames[0];
+                let worksheet = workbook.Sheets[sheetName];
 
-                let count = 0;
-                for (let i = 1; i < jsonData.length; i++) { // Skip header
-                    const row = jsonData[i];
+                // Chuyển thành JSON
+                let json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                // Duyệt từ dòng 1 (bỏ dòng tiêu đề 0)
+                for (let i = 1; i < json.length; i++) {
+                    let row = json[i];
                     if (row.length > 0) {
-                        // Avoid adding duplicates by MaSV
-                        const msv = row[0] || "";
-                        if (!studentList.some(s => s.maSV == msv)) {
-                            studentList.push(new Student(msv, row[1], row[2], row[3], row[4]));
-                            count++;
-                        }
+                        // row[0]=Mã, row[1]=Tên, row[2]=NgàySinh, row[3]=Lớp, row[4]=GPA
+                        let sv = new Student(row[0], row[1], row[2], row[3], row[4]);
+                        studentList.push(sv);
                     }
                 }
-                saveData();
-                renderTable(studentList);
-                alert(`Đã import thành công ${count} sinh viên mới!`);
-                fileInput.value = ""; // Reset input
+                renderTable();
+                alert("Đã nhập dữ liệu thành công!");
             };
             reader.readAsArrayBuffer(file);
-        }
-
-        function exportExcel() {
-            if (studentList.length === 0) { alert("Danh sách trống!"); return; }
-            
-            // Convert data to Worksheet
-            const wsData = [["Mã SV", "Họ Tên", "Ngày Sinh", "Lớp", "GPA"]]; // Header
-            studentList.forEach(s => wsData.push([s.maSV, s.hoTen, s.ngaySinh, s.lop, s.gpa]));
-            
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "SinhVien");
-            
-            // Download
-            XLSX.writeFile(wb, "DanhSachSinhVien.xlsx");
         }
     </script>
 </body>
