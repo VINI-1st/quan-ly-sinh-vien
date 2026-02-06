@@ -4,49 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Sinh Viên</title>
+    
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        
+        /* --- CẤU HÌNH GIAO DIỆN SÁNG (LIGHT MODE) --- */
         :root {
-            --primary-color: #2563eb;    /* Màu chủ đạo: Xanh dương đậm */
-            --primary-hover: #1d4ed8;    /* Màu khi di chuột */
-            --bg-body: #f3f4f6;          /* Nền trang: Xám nhạt (đỡ chói) */
-            --bg-card: #ffffff;          /* Nền khung: Trắng tinh */
-            --text-main: #1f2937;        /* Chữ chính: Đen xám */
-            --text-secondary: #6b7280;   /* Chữ phụ: Xám ghi */
-            --border-color: #e5e7eb;     /* Màu viền: Xám rất nhạt */
+            --primary-color: #2563eb;    /* Xanh dương đậm */
+            --primary-hover: #1d4ed8;    /* Xanh khi di chuột */
+            --bg-body: #f3f4f6;          /* Nền xám nhạt */
+            --bg-card: #ffffff;          /* Nền trắng */
+            --text-main: #1f2937;        /* Chữ đen xám */
+            --text-secondary: #6b7280;   /* Chữ xám ghi */
+            --border-color: #e5e7eb;     /* Viền xám nhạt */
             --danger-color: #ef4444;     /* Màu đỏ */
-            --success-color: #10b981;    /* Màu xanh lá */
         }
 
         body {
-            font-family: 'Inter', sans-serif; /* Font Inter rất hiện đại */
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0;
             padding: 40px 20px;
         }
 
-        /* Header tiêu đề */
         .page-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
         .page-header h1 {
             color: var(--primary-color);
             margin: 0;
             font-size: 2rem;
-            font-weight: 700;
-        }
-        .page-header p {
-            color: var(--text-secondary);
-            margin-top: 10px;
         }
 
-        /* Layout 2 cột */
+        /* Bố cục chia 2 cột */
         .container {
             display: flex;
             gap: 30px;
@@ -55,17 +50,17 @@
             align-items: flex-start;
         }
 
-        /* Card (Khung chứa) */
+        /* Khung Card */
         .card {
             background-color: var(--bg-card);
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--border-color);
         }
 
         /* --- PHẦN FORM (BÊN TRÁI) --- */
-        .form-section { flex: 1; min-width: 320px; }
+        .form-section { flex: 1; min-width: 300px; }
         
         .card-title {
             margin-top: 0;
@@ -74,38 +69,31 @@
             border-bottom: 2px solid var(--bg-body);
             padding-bottom: 15px;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .form-group { margin-bottom: 15px; }
         .form-group label {
             display: block;
             margin-bottom: 6px;
-            font-size: 0.9rem;
             font-weight: 500;
-            color: var(--text-main);
+            font-size: 0.9rem;
         }
 
         input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 0.95rem;
             box-sizing: border-box;
-            transition: border 0.2s;
-            background-color: #f9fafb; /* Nền input hơi xám nhẹ */
+            background-color: #f9fafb;
         }
         input:focus {
             outline: none;
             border-color: var(--primary-color);
             background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        /* Buttons */
+        /* Nút bấm */
         .btn {
             width: 100%;
             padding: 12px;
@@ -113,21 +101,301 @@
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
             margin-bottom: 10px;
-            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
 
         .btn-primary { background-color: var(--primary-color); color: white; }
         .btn-primary:hover { background-color: var(--primary-hover); }
 
         .btn-secondary { background-color: white; border: 1px solid var(--border-color); color: var(--text-secondary); }
-        .btn-secondary:hover { background-color: #f3f4f6; color: var(--text-main); }
+        .btn-secondary:hover { background-color: #f3f4f6; }
 
-        .btn-outline { background: transparent; border: 1px dashed var(--text-secondary); color: var(--text-secondary); }
-        .btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); background: #eff6ff; }
+        .import-area {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+        .btn-success { background-color: #10b981; color: white; }
 
-        /* --- PHẦN DANH SÁCH (BÊN PHẢI) ---
+        /* --- PHẦN BẢNG (BÊN PHẢI) --- */
+        .list-section { flex: 2.5; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit {
+            background-color: #eff6ff;
+            color: var(--primary-color);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-edit:hover { background-color: #dbeafe; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .form-section, .list-section { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <h1><i class="fas fa-graduation-cap"></i> Quản Lý Sinh Viên</h1>
+        <p>Hệ thống nhập liệu và theo dõi kết quả học tập</p>
+    </div>
+
+    <div class="container">
+        <div class="form-section card">
+            <h3 class="card-title"><i class="fas fa-user-edit"></i> Thông tin chi tiết</h3>
+            
+            <div class="form-group">
+                <label>Mã Sinh Viên</label>
+                <input type="text" id="maSV" placeholder="VD: B21DCCN001">
+            </div>
+
+            <div class="form-group">
+                <label>Họ và Tên</label>
+                <input type="text" id="tenSV" placeholder="Nguyễn Văn A">
+            </div>
+
+            <div class="form-group">
+                <label>Ngày Sinh</label>
+                <input type="date" id="ngaySinh">
+            </div>
+
+            <div class="form-group">
+                <label>Lớp</label>
+                <input type="text" id="lop" placeholder="D21CQCN01">
+            </div>
+
+            <div class="form-group">
+                <label>Điểm GPA</label>
+                <input type="number" id="gpa" step="0.1" min="0" max="4" placeholder="0.0">
+            </div>
+
+            <input type="hidden" id="edit-index" value="-1">
+
+            <button class="btn btn-primary" onclick="saveStudent()">
+                <i class="fas fa-save"></i> Lưu Thông Tin
+            </button>
+            <button class="btn btn-secondary" onclick="resetForm()">
+                <i class="fas fa-sync-alt"></i> Nhập Mới
+            </button>
+
+            <div class="import-area">
+                <div class="form-group">
+                    <label>Nhập từ Excel</label>
+                    <input type="file" id="fileExcel" accept=".xlsx, .xls">
+                </div>
+                <button class="btn btn-success" onclick="readExcel()">
+                    <i class="fas fa-file-excel"></i> Tải Lên
+                </button>
+            </div>
+        </div>
+
+        <div class="list-section card">
+            <h3 class="card-title"><i class="fas fa-list"></i> Danh Sách Sinh Viên</h3>
+            <div style="overflow-x: auto;">
+                <table id="table-sv">
+                    <thead>
+                        <tr>
+                            <th>Mã SV</th>
+                            <th>Họ Tên</th>
+                            <th>Ngày Sinh</th>
+                            <th>Lớp</th>
+                            <th>GPA</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+                <p id="empty-msg" style="text-align: center; color: #9ca3af; margin-top: 20px;">
+                    Chưa có dữ liệu. Vui lòng nhập hoặc import Excel.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Định nghĩa Class Student (Hướng đối tượng)
+        class Student {
+            constructor(ma, ten, ngay, lop, diem) {
+                this.maSV = ma;
+                this.tenSV = ten;
+                this.ngaySinh = ngay;
+                this.lop = lop;
+                this.gpa = diem;
+            }
+
+            // Phương thức cập nhật thông tin
+            update(ten, ngay, lop, diem) {
+                this.tenSV = ten;
+                this.ngaySinh = ngay;
+                this.lop = lop;
+                this.gpa = diem;
+            }
+        }
+
+        // Mảng lưu danh sách sinh viên
+        let studentList = [];
+
+        // 2. Hàm Lưu (Thêm mới hoặc Cập nhật)
+        function saveStudent() {
+            let ma = document.getElementById("maSV").value.trim();
+            let ten = document.getElementById("tenSV").value.trim();
+            let ngay = document.getElementById("ngaySinh").value;
+            let lop = document.getElementById("lop").value.trim();
+            let diem = document.getElementById("gpa").value;
+            let index = document.getElementById("edit-index").value;
+
+            if (ma == "" || ten == "") {
+                alert("Vui lòng nhập Mã và Tên sinh viên!");
+                return;
+            }
+
+            if (index == -1) {
+                // Thêm mới
+                // Kiểm tra trùng mã SV (Cơ bản)
+                let isExist = studentList.some(s => s.maSV === ma);
+                if (isExist) {
+                    alert("Mã sinh viên này đã tồn tại!");
+                    return;
+                }
+
+                let sv = new Student(ma, ten, ngay, lop, diem);
+                studentList.push(sv);
+            } else {
+                // Cập nhật (Sửa)
+                studentList[index].update(ten, ngay, lop, diem);
+                // Mã SV khóa chính nên thường giữ nguyên
+                studentList[index].maSV = ma; 
+            }
+
+            renderTable();
+            resetForm();
+        }
+
+        // 3. Hàm Hiển thị bảng
+        function renderTable() {
+            let tableBody = document.querySelector("#table-sv tbody");
+            let emptyMsg = document.getElementById("empty-msg");
+            
+            tableBody.innerHTML = ""; // Xóa cũ
+
+            if (studentList.length > 0) {
+                emptyMsg.style.display = "none";
+                
+                studentList.forEach((sv, i) => {
+                    let row = `
+                        <tr>
+                            <td style="font-weight: 600; color: #2563eb;">${sv.maSV}</td>
+                            <td>${sv.tenSV}</td>
+                            <td>${sv.ngaySinh}</td>
+                            <td>${sv.lop}</td>
+                            <td>${sv.gpa}</td>
+                            <td>
+                                <button class="btn-edit" onclick="editStudent(${i})">
+                                    <i class="fas fa-pen"></i> Sửa
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                emptyMsg.style.display = "block";
+            }
+        }
+
+        // 4. Hàm Sửa (Đẩy dữ liệu lên form)
+        function editStudent(i) {
+            let sv = studentList[i];
+            document.getElementById("maSV").value = sv.maSV;
+            document.getElementById("tenSV").value = sv.tenSV;
+            document.getElementById("ngaySinh").value = sv.ngaySinh;
+            document.getElementById("lop").value = sv.lop;
+            document.getElementById("gpa").value = sv.gpa;
+            
+            document.getElementById("edit-index").value = i;
+            document.getElementById("maSV").disabled = true; // Khóa mã khi sửa
+            
+            // Cuộn lên đầu trang
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 5. Hàm Làm mới Form
+        function resetForm() {
+            document.getElementById("maSV").value = "";
+            document.getElementById("tenSV").value = "";
+            document.getElementById("ngaySinh").value = "";
+            document.getElementById("lop").value = "";
+            document.getElementById("gpa").value = "";
+            
+            document.getElementById("edit-index").value = -1;
+            document.getElementById("maSV").disabled = false;
+        }
+
+        // 6. Hàm Import Excel
+        function readExcel() {
+            let fileInput = document.getElementById("fileExcel");
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Vui lòng chọn file Excel!");
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, {type: 'array'});
+                let sheetName = workbook.SheetNames[0];
+                let worksheet = workbook.Sheets[sheetName];
+                let json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+
+                let count = 0;
+                // Bỏ qua dòng tiêu đề (i=1)
+                for (let i = 1; i < json.length; i++) {
+                    let row = json[i];
+                    if (row.length > 0 && row[0]) {
+                        // Kiểm tra nếu mã chưa tồn tại thì thêm
+                        if (!studentList.some(s => s.maSV == row[0])) {
+                            let sv = new Student(row[0], row[1], row[2], row[3], row[4]);
+                            studentList.push(sv);
+                            count++;
+                        }
+                    }
+                }
+                renderTable();
+                alert("Đã thêm thành công " + count + " sinh viên!");
+                fileInput.value = ""; // Reset input
+            };
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
