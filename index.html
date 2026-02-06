@@ -3,291 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Sinh Viên</title>
+    <title>Hệ Thống Quản Lý Sinh Viên</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* CSS Cơ bản - Tự viết tay */
+        /* --- CẤU HÌNH GIAO DIỆN TỐI (DARK MODE) CHUYÊN NGHIỆP --- */
+        :root {
+            --bg-body: #121212;          /* Nền chính tối sẫm */
+            --bg-card: #1e1e1e;          /* Nền các khối card (sáng hơn nền chính) */
+            --bg-input: #2d2d2d;         /* Nền ô nhập liệu */
+            --text-primary: #e0e0e0;     /* Màu chữ chính (trắng đục) */
+            --text-secondary: #a0a0a0;   /* Màu chữ phụ (xám) */
+            --accent-color: #3498db;     /* Màu nhấn (xanh dương) */
+            --danger-color: #e74c3c;     /* Màu cảnh báo/xóa (đỏ) */
+            --border-color: #333;        /* Màu đường viền tối */
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+            font-family: 'Roboto', sans-serif; /* Sử dụng font hiện đại */
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
             line-height: 1.6;
         }
 
-        h1 { text-align: center; color: #333; }
+        h1 {
+            text-align: center;
+            font-weight: 300;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
+        /* Layout Flexbox */
         .container {
             display: flex;
-            gap: 30px;
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: flex-start; /* Căn các khối lên trên cùng */
         }
 
-        /* Phần Form bên trái */
+        /* Thiết kế các khối Card (Form và Bảng) */
+        .card-box {
+            background-color: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px; /* Bo góc tròn */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3); /* Đổ bóng tạo chiều sâu */
+        }
+
+        /* --- PHẦN FORM BÊN TRÁI --- */
         .form-container {
-            flex: 1;
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            height: fit-content;
+            flex: 1; /* Chiếm 1 phần chiều rộng */
+            min-width: 300px;
         }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { 
+        h3 { margin-top: 0; color: var(--accent-color); font-weight: 500; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;}
+        
+
+        .form-control { 
             width: 100%; 
-            padding: 8px; 
-            border: 1px solid #ddd; 
-            border-radius: 4px;
-            box-sizing: border-box; /* Để padding không làm vỡ khung */
+            padding: 12px; 
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: all 0.3s ease; 
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
         }
 
-        button {
-            padding: 10px 15px;
+      
+        .btn {
+            padding: 10px 20px;
             cursor: pointer;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
-            margin-right: 5px;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            display: inline-flex; align-items: center; gap: 8px; 
         }
+        .btn:active { transform: scale(0.98); } /* Hiệu ứng nhấn nút */
 
-        .btn-save { background-color: #4CAF50; color: white; }
-        .btn-save:hover { background-color: #45a049; }
-        
-        .btn-reset { background-color: #888; color: white; }
-
-        /* Phần Danh sách bên phải */
-        .list-container {
-            flex: 2;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-
-        th { background-color: #eee; }
-
-        .btn-edit { background-color: #ff9800; color: white; padding: 5px 10px; }
-        .import-box { margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; }
-    </style>
-</head>
-<body>
-
-    <h1>QUẢN LÝ SINH VIÊN</h1>
-
-    <div class="container">
-        <div class="form-container">
-            <h3 id="form-header">Nhập thông tin</h3>
-            
-            <div class="form-group">
-                <label>Mã Sinh Viên:</label>
-                <input type="text" id="maSV">
-            </div>
-
-            <div class="form-group">
-                <label>Họ và Tên:</label>
-                <input type="text" id="tenSV">
-            </div>
-
-            <div class="form-group">
-                <label>Ngày Sinh:</label>
-                <input type="date" id="ngaySinh">
-            </div>
-
-            <div class="form-group">
-                <label>Lớp:</label>
-                <input type="text" id="lop">
-            </div>
-
-            <div class="form-group">
-                <label>Điểm GPA:</label>
-                <input type="number" id="gpa" step="0.1" min="0" max="4">
-            </div>
-
-            <input type="hidden" id="edit-index" value="-1">
-
-            <button class="btn-save" onclick="saveStudent()">Lưu Sinh Viên</button>
-            <button class="btn-reset" onclick="resetForm()">Nhập mới</button>
-
-            <div class="import-box">
-                <h4>Nhập từ Excel</h4>
-                <input type="file" id="fileExcel" accept=".xlsx, .xls">
-                <button onclick="readExcel()" style="margin-top: 5px;">Tải lên</button>
-            </div>
-        </div>
-
-        <div class="list-container">
-            <h3>Danh sách sinh viên</h3>
-            <table id="table-sv">
-                <thead>
-                    <tr>
-                        <th>Mã SV</th>
-                        <th>Họ Tên</th>
-                        <th>Ngày Sinh</th>
-                        <th>Lớp</th>
-                        <th>GPA</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        // --- PHẦN 1: ĐỊNH NGHĨA CLASS (Hướng đối tượng) ---
-        class Student {
-            constructor(ma, ten, ngay, lop, diem) {
-                this.maSV = ma;
-                this.tenSV = ten;
-                this.ngaySinh = ngay;
-                this.lop = lop;
-                this.gpa = diem;
-            }
-
-            // Phương thức cập nhật thông tin
-            update(ten, ngay, lop, diem) {
-                this.tenSV = ten;
-                this.ngaySinh = ngay;
-                this.lop = lop;
-                this.gpa = diem;
-            }
-        }
-
-        // Mảng chứa danh sách sinh viên
-        let studentList = [];
-
-        // --- PHẦN 2: CÁC HÀM XỬ LÝ ---
-
-        // Hàm 1: Lưu sinh viên (Thêm mới hoặc Cập nhật)
-        function saveStudent() {
-            // Lấy dữ liệu từ ô input
-            let ma = document.getElementById("maSV").value;
-            let ten = document.getElementById("tenSV").value;
-            let ngay = document.getElementById("ngaySinh").value;
-            let lop = document.getElementById("lop").value;
-            let diem = document.getElementById("gpa").value;
-            let index = document.getElementById("edit-index").value;
-
-            // Kiểm tra rỗng đơn giản
-            if (ma == "" || ten == "") {
-                alert("Vui lòng nhập Mã và Tên sinh viên!");
-                return;
-            }
-
-            if (index == -1) {
-                // THÊM MỚI: Tạo đối tượng Student và đẩy vào mảng
-                let sv = new Student(ma, ten, ngay, lop, diem);
-                studentList.push(sv);
-            } else {
-                // CẬP NHẬT: Gọi phương thức update của đối tượng
-                // Vì danh sách lưu object, ta lấy object ra và sửa
-                studentList[index].update(ten, ngay, lop, diem);
-                // Mã SV thường là khóa chính nên ít khi sửa, nhưng nếu cần:
-                studentList[index].maSV = ma; 
-            }
-
-            renderTable(); // Vẽ lại bảng
-            resetForm();   // Xóa trắng form
-        }
-
-        // Hàm 2: Hiển thị danh sách ra bảng (Render HTML)
-        function renderTable() {
-            let tableBody = document.querySelector("#table-sv tbody");
-            tableBody.innerHTML = ""; // Xóa bảng cũ
-
-            for (let i = 0; i < studentList.length; i++) {
-                let sv = studentList[i];
-                
-                // Tạo chuỗi HTML cho từng dòng
-                let row = `
-                    <tr>
-                        <td>${sv.maSV}</td>
-                        <td>${sv.tenSV}</td>
-                        <td>${sv.ngaySinh}</td>
-                        <td>${sv.lop}</td>
-                        <td>${sv.gpa}</td>
-                        <td>
-                            <button class="btn-edit" onclick="editStudent(${i})">Sửa</button>
-                        </td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            }
-        }
-
-        // Hàm 3: Đưa thông tin lên form để sửa
-        function editStudent(i) {
-            let sv = studentList[i];
-            
-            // Điền dữ liệu vào ô input
-            document.getElementById("maSV").value = sv.maSV;
-            document.getElementById("tenSV").value = sv.tenSV;
-            document.getElementById("ngaySinh").value = sv.ngaySinh;
-            document.getElementById("lop").value = sv.lop;
-            document.getElementById("gpa").value = sv.gpa;
-
-            // Đánh dấu là đang sửa dòng thứ i
-            document.getElementById("edit-index").value = i;
-            document.getElementById("form-header").innerText = "Cập nhật sinh viên";
-        }
-
-        // Hàm 4: Làm mới form
-        function resetForm() {
-            document.getElementById("maSV").value = "";
-            document.getElementById("tenSV").value = "";
-            document.getElementById("ngaySinh").value = "";
-            document.getElementById("lop").value = "";
-            document.getElementById("gpa").value = "";
-            
-            document.getElementById("edit-index").value = -1;
-            document.getElementById("form-header").innerText = "Nhập thông tin";
-        }
-
-        // Hàm 5: Đọc file Excel (Sử dụng thư viện SheetJS cơ bản)
-        function readExcel() {
-            let fileInput = document.getElementById("fileExcel");
-            let file = fileInput.files[0];
-
-            if (!file) {
-                alert("Bạn chưa chọn file!");
-                return;
-            }
-
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                let data = new Uint8Array(e.target.result);
-                let workbook = XLSX.read(data, {type: 'array'});
-                
-                // Lấy sheet đầu tiên
-                let sheetName = workbook.SheetNames[0];
-                let worksheet = workbook.Sheets[sheetName];
-
-                // Chuyển thành JSON
-                let json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-
-                // Duyệt từ dòng 1 (bỏ dòng tiêu đề 0)
-                for (let i = 1; i < json.length; i++) {
-                    let row = json[i];
-                    if (row.length > 0) {
-                        // row[0]=Mã, row[1]=Tên, row[2]=NgàySinh, row[3]=Lớp, row[4]=GPA
-                        let sv = new Student(row[0], row[1], row[2], row[3], row[4]);
-                        studentList.push(sv);
-                    }
-                }
-                renderTable();
-                alert("Đã nhập dữ liệu thành công!");
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    </script>
-</body>
-</html>
+        .btn-save { background-color:
