@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sinh Viên</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .container { display: flex; gap: 20px; }
+        .form-section { flex: 1; padding: 20px; border: 1px solid #ddd; border-radius: 8px; height: fit-content; }
+        .list-section { flex: 2; }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        button.edit-btn { background-color: #ffc107; color: black; padding: 5px 10px; font-size: 14px; margin-right: 5px; }
+        button.delete-btn { background-color: #dc3545; padding: 5px 10px; font-size: 14px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        
+        .import-section { margin-top: 20px; padding-top: 20px; border-top: 1px dashed #ccc; }
+        #fileInput { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Hệ Thống Quản Lý Sinh Viên</h1>
+
+    <div class="container">
+        <div class="form-section">
+            <h3 id="formTitle">Nhập Thông Tin</h3>
+            <div class="form-group">
+                <label>Mã SV:</label>
+                <input type="text" id="maSV" placeholder="Ví dụ: B21DCCN001">
+            </div>
+            <div class="form-group">
+                <label>Họ và Tên:</label>
+                <input type="text" id="hoTen" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="form-group">
+                <label>Ngày sinh:</label>
+                <input type="date" id="ngaySinh">
+            </div>
+            <div class="form-group">
+                <label>Lớp:</label>
+                <input type="text" id="lop" placeholder="D21CQCN01">
+            </div>
+            <div class="form-group">
+                <label>Điểm GPA:</label>
+                <input type="number" id="gpa" step="0.1" min="0" max="4">
+            </div>
+            
+            <input type="hidden" id="editIndex" value="-1">
+            <button onclick="handleSave()">Lưu Sinh Viên</button>
+            <button onclick="resetForm()" style="background-color: #6c757d; margin-top: 10px;">Làm mới</button>
+
+            <div class="import-section">
+                <h3>Import từ Excel</h3>
+                <p><i>Cấu trúc file: Cột A (Mã), B (Tên), C (Ngày sinh), D (Lớp), E (GPA)</i></p>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" />
+                <button onclick="importExcel()" style="background-color: #007bff;">Upload Excel</button>
+            </div>
+        </div>
+
+        <div class="list-section">
+            <h3>Danh Sách Sinh Viên</h3>
+            <table id="studentTable">
+                <thead>
+                    <tr>
+                        <th>Mã SV</th>
+                        <th>Họ Tên</th>
+                        <th>Ngày Sinh</th>
+                        <th>Lớp</th>
+                        <th>GPA</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 1. Định nghĩa Class Student theo yêu cầu
+        class Student {
+            constructor(maSV, hoTen, ngaySinh, lop, gpa) {
+                this.maSV = maSV;
+                this.hoTen = hoTen;
+                this.ngaySinh = ngaySinh;
+                this.lop = lop;
+                this.gpa = gpa;
+            }
+
+            // Phương thức cập nhật thông tin
+            updateInfo(hoTen, ngaySinh, lop, gpa) {
+                this.hoTen = hoTen;
+                this.ngaySinh = ngaySinh;
+                this.lop = lop;
+                this.gpa = gpa;
+            }
+        }
+
+        // Mảng lưu trữ danh sách sinh viên
+        let studentList = [];
+
+        // 2. Hàm render bảng
+        function renderTable() {
+            const tbody = document.querySelector("#studentTable tbody");
+            tbody.innerHTML = ""; // Xóa cũ
+
+            studentList.forEach((sv, index) => {
+                const row = `<tr>
+                    <td>${sv.maSV}</td>
+                    <td>${sv.hoTen}</td>
+                    <td>${sv.ngaySinh}</td>
+                    <td>${sv.lop}</td>
+                    <td>${sv.gpa}</td>
+                    <td>
+                        <button class="edit-btn" onclick="prepareEdit(${index})">Sửa</button>
+                        <button class="delete-btn" onclick="deleteStudent(${index})">Xóa</button>
+                    </td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // 3. Xử lý Lưu (Thêm mới hoặc Cập nhật)
+        function handleSave() {
+            const maSV = document.getElementById("maSV").value;
+            const hoTen = document.getElementById("hoTen").value;
+            const ngaySinh = document.getElementById("ngaySinh").value;
+            const lop = document.getElementById("lop").value;
+            const gpa = document.getElementById("gpa").value;
+            const editIndex = document.getElementById("editIndex").value;
+
+            if (!maSV || !hoTen) {
+                alert("Vui lòng nhập Mã SV và Họ Tên!");
+                return;
+            }
+
+            if (editIndex == -1) {
+                // Thêm mới: Tạo đối tượng từ Class Student
+                const newStudent = new Student(maSV, hoTen, ngaySinh, lop, gpa);
+                studentList.push(newStudent);
+            } else {
+                // Cập nhật: Gọi phương thức updateInfo của đối tượng
+                // Lưu ý: editIndex là chỉ mục trong mảng
+                studentList[editIndex].updateInfo(hoTen, ngaySinh, lop, gpa);
+                // Vì Mã SV thường là khóa chính nên ta giữ nguyên, hoặc cập nhật riêng nếu cần
+                studentList[editIndex].maSV = maSV; 
+            }
+
+            renderTable();
+            resetForm();
+        }
+
+        // 4. Chuẩn bị sửa (Đưa dữ liệu lên form)
+        function prepareEdit(index) {
+            const sv = studentList[index];
+            document.getElementById("maSV").value = sv.maSV;
+            document.getElementById("hoTen").value = sv.hoTen;
+            document.getElementById("ngaySinh").value = sv.ngaySinh;
+            document.getElementById("lop").value = sv.lop;
+            document.getElementById("gpa").value = sv.gpa;
+            
+            document.getElementById("editIndex").value = index;
+            document.getElementById("formTitle").innerText = "Cập Nhật Thông Tin";
+            document.getElementById("maSV").disabled = true; // Thường không cho sửa mã khi edit
+        }
+
+        // 5. Xóa sinh viên
+        function deleteStudent(index) {
+            if (confirm("Bạn chắc chắn muốn xóa?")) {
+                studentList.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        // 6. Reset form
+        function resetForm() {
+            document.getElementById("maSV").value = "";
+            document.getElementById("hoTen").value = "";
+            document.getElementById("ngaySinh").value = "";
+            document.getElementById("lop").value = "";
+            document.getElementById("gpa").value = "";
+            document.getElementById("editIndex").value = "-1";
+            document.getElementById("formTitle").innerText = "Nhập Thông Tin";
+            document.getElementById("maSV").disabled = false;
+        }
+
+        // 7. Chức năng Import Excel
+        function importExcel() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Vui lòng chọn file Excel!");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Lấy sheet đầu tiên
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // Chuyển đổi sang JSON (mảng các mảng)
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                // Duyệt qua dữ liệu (Bỏ qua dòng tiêu đề đầu tiên nếu có)
+                // Giả định file excel cột theo thứ tự: Mã, Tên, Ngày Sinh, Lớp, GPA
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (row.length > 0) {
+                        // Tạo đối tượng Student mới từ dữ liệu Excel
+                        const newSv = new Student(
+                            row[0] || "", // Cột A
+                            row[1] || "", // Cột B
+                            row[2] || "", // Cột C
+                            row[3] || "", // Cột D
+                            row[4] || ""  // Cột E
+                        );
+                        studentList.push(newSv);
+                    }
+                }
+                renderTable();
+                alert("Đã import thành công " + (jsonData.length - 1) + " sinh viên!");
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
